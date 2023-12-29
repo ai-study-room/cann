@@ -31,10 +31,12 @@ RUN git clone https://gitee.com/ascend/AscendSpeed
 RUN mkdir -p /app/AscendSpeed/logs & mkdir -p /app/AscendSpeed/ckpt
 RUN pip3 install -r /app/AscendSpeed/requirements.txt
 
+RUN rm -rf /app/pkgs & rm -rf /app/deepspeed_npu/ & rm -rf /app/src
+
 RUN pip3 install protobuf==3.20
 
 ENV PYTHONPATH=/app/AscendSpeed:$PYTHONPATH
-ENV LD_LIBRARY_PATH=/usr/local/Ascend/nnae/6.3.RC2/runtime/lib64:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/Ascend/ascend-toolkit/7.0.RC1.3/runtime/lib64:$LD_LIBRARY_PATH
 
 
 
