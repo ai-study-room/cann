@@ -4,40 +4,36 @@ WORKDIR /app
 
 RUN pip3 config set global.index-url 'https://pypi.tuna.tsinghua.edu.cn/simple'
 
-RUN mkdir -p /app/pkgs
+RUN mkdir -p /app/pkgs && \
+    curl -L https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/CANN/CANN%207.0.RC1.3/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run -o /app/pkgs/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run && \
+    chmod +x /app/pkgs/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run && \
+    /app/pkgs/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run --install --quiet && \
+    rm -rf /app/pkgs/* && \
+    echo "source /usr/local/Ascend/ascend-toolkit/set_env.sh" >> ~/.bashrc
 
-COPY ./Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run /app/pkgs/
-RUN chmod +x /app/pkgs/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run
-RUN /app/pkgs/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run --install --quiet
-RUN echo "source /usr/local/Ascend/ascend-toolkit/set_env.sh" >> ~/.bashrc
-
-COPY ./Ascend-cann-kernels-910b_7.0.RC1.3_linux.run /app/pkgs/
-RUN chmod +x /app/pkgs/Ascend-cann-kernels-910b_7.0.RC1.3_linux.run
-RUN /app/pkgs/Ascend-cann-kernels-910b_7.0.RC1.3_linux.run --install --quiet
-
-RUN pip3 install torch==2.1.0
-RUN pip3 install torch-npu==2.1.0
+RUN mkdir -p /app/pkgs && \
+    curl -L https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/CANN/CANN%207.0.RC1.3/Ascend-cann-kernels-910b_7.0.RC1.3_linux.run -o /app/pkgs/Ascend-cann-kernels-910b_7.0.RC1.3_linux.run && \
+    chmod +x /app/pkgs/Ascend-cann-kernels-910b_7.0.RC1.3_linux.run && \
+    /app/pkgs/Ascend-cann-kernels-910b_7.0.RC1.3_linux.run --install --quiet && \
+    rm -rf /app/pkgs/* && \
+    pip3 install torch==2.1.0 && \
+    pip3 install torch-npu==2.1.0
 
 COPY ./apex-0.1_ascend-cp38-cp38-linux_aarch64.whl /app/pkgs/
-RUN pip3 install /app/pkgs/apex-0.1_ascend-cp38-cp38-linux_aarch64.whl
+RUN pip3 install /app/pkgs/apex-0.1_ascend-cp38-cp38-linux_aarch64.whl && \
+    rm -rf /app/pkgs/* && \
+    pip3 install --no-use-pep517 -e git+https://github.com/NVIDIA/Megatron-LM.git@23.05#egg=megatron-core && \
+    pip3 install deepspeed==0.9.2 && \
+    git clone https://gitee.com/ascend/DeepSpeed.git -b v0.9.2 --depth=1 deepspeed_npu && \
+    pip3 install -e /app/deepspeed_npu/ && \
+    rm -rf /app/deepspeed_npu/
 
-RUN pip3 install --no-use-pep517 -e git+https://github.com/NVIDIA/Megatron-LM.git@23.05#egg=megatron-core
-
-RUN pip3 install deepspeed==0.9.2
-RUN git clone https://gitee.com/ascend/DeepSpeed.git -b v0.9.2 deepspeed_npu
-RUN pip3 install -e /app/deepspeed_npu/
-
-RUN git clone https://gitee.com/ascend/AscendSpeed
-RUN mkdir -p /app/AscendSpeed/logs & mkdir -p /app/AscendSpeed/ckpt
-RUN pip3 install -r /app/AscendSpeed/requirements.txt
-
-RUN rm -rf /app/pkgs & rm -rf /app/deepspeed_npu/ & rm -rf /app/src
-
-RUN pip3 install protobuf==3.20
+RUN cd /app && \
+    git clone https://gitee.com/ascend/AscendSpeed.git --depth=1 && \
+    mkdir -p /app/AscendSpeed/logs && \
+    mkdir -p /app/AscendSpeed/ckpt && \
+    pip3 install -r /app/AscendSpeed/requirements.txt && \
+    pip3 install protobuf==3.20
 
 ENV PYTHONPATH=/app/AscendSpeed:$PYTHONPATH
 ENV LD_LIBRARY_PATH=/usr/local/Ascend/ascend-toolkit/7.0.RC1.3/runtime/lib64:$LD_LIBRARY_PATH
-
-
-
-
