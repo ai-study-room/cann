@@ -2,7 +2,7 @@ From python:3.10.13
 
 WORKDIR /app
 
-RUN pip3 config set global.index-url 'https://pypi.tuna.tsinghua.edu.cn/simple'
+RUN pip3 config set global.index-url 'https://mirrors.aliyun.com/pypi/simple'
 
 RUN mkdir -p /app/pkgs && \
     curl -L https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/CANN/CANN%207.0.RC1.3/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run -o /app/pkgs/Ascend-cann-toolkit_7.0.RC1.3_linux-aarch64.run && \
@@ -19,10 +19,10 @@ RUN mkdir -p /app/pkgs && \
     pip3 install torch==2.1.0 && \
     pip3 install torch-npu==2.1.0
 
-# COPY ./apex-0.1_ascend-cp38-cp38-linux_aarch64.whl /app/pkgs/
-# RUN pip3 install /app/pkgs/apex-0.1_ascend-cp38-cp38-linux_aarch64.whl && \
-    # rm -rf /app/pkgs/* && \
-RUN pip3 install --no-use-pep517 -e git+https://github.com/NVIDIA/Megatron-LM.git@23.05#egg=megatron-core && \
+COPY ./apex-0.1_ascend-cp310-cp310-linux_aarch64.whl /app/pkgs/
+RUN pip3 install /app/pkgs/apex-0.1_ascend-cp310-cp310-linux_aarch64.whl && \
+    rm -rf /app/pkgs/* && \
+    pip3 install --no-use-pep517 -e git+https://github.com/NVIDIA/Megatron-LM.git@23.05#egg=megatron-core && \
     pip3 install deepspeed==0.9.2 && \
     git clone https://github.com/Bevisy/DeepSpeed.git -b v0.9.2 --depth=1 deepspeed_npu && \
     pip3 install -e /app/deepspeed_npu/ && \
@@ -37,3 +37,7 @@ RUN cd /app && \
 
 ENV PYTHONPATH=/app/AscendSpeed:$PYTHONPATH
 ENV LD_LIBRARY_PATH=/usr/local/Ascend/ascend-toolkit/7.0.RC1.3/runtime/lib64:$LD_LIBRARY_PATH
+
+RUN apt update -y && \
+    apt install wget git libgl1 libglib2.0-0 python3-venv pciutils ffmpeg -y && \
+    apt clean all
